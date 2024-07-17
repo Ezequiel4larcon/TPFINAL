@@ -1,12 +1,7 @@
-// Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { getAuth, signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword } from "firebase/auth";
 import { getFirestore } from "firebase/firestore"
 
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
 export const firebaseConfig = {
   apiKey: "AIzaSyC8OKNBWRfv1kQhobnOdtES4VmLzgj--l0",
   authDomain: "tp-final-prog3.firebaseapp.com",
@@ -17,10 +12,10 @@ export const firebaseConfig = {
   appId: "1:253341748100:web:1b38b1c832a8a0e0a66bd1",
 };
 
-// Initialize Firebase
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+
 
 export async function login(email, password) {
   const userCredentials = await signInWithEmailAndPassword(
@@ -30,3 +25,23 @@ export async function login(email, password) {
   );
   return userCredentials.user;
 }
+
+export async function register(email, password) {
+  const userCredentials = await createUserWithEmailAndPassword(
+    auth,
+    email,
+    password
+  );
+  return userCredentials.user;
+}
+
+export const logout = async (navigate) => {
+  const auth = getAuth(app);
+  try {
+    await signOut(auth);
+    console.log("Deslogueo exitoso");
+    navigate("/login");
+  } catch (error) {
+    console.error("Error al desloguearse:", error);
+  }
+};

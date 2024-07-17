@@ -13,10 +13,8 @@ export default function useAuth() {
     try {
       const u = await firebase.login(email, password);
       setUser(u);
-      navigate("/app");
+      navigate("/app/home");
     } catch (error) {
-
-      // If email its not verified
       if (error.code === "auth/invalid-email") {
         alert("Email inválido");
       } else if (error.code === "auth/user-not-found") {
@@ -27,8 +25,7 @@ export default function useAuth() {
         alert("Demasiados intentos fallidos. Intente más tarde");
       } else {
         alert(error.message);
-      };
-      
+      }
     }
   }
 

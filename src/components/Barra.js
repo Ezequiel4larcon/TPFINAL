@@ -1,36 +1,79 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
+import { logout } from "../firebase/firebase";
+import { useNavigate } from "react-router-dom";
+import { LogOut } from "feather-icons-react";
 
+export default function Barra({ user }) {
+  const navigate = useNavigate();
 
-export default function Barra() {
+  const handleLogout = () => {
+    logout(navigate);
+  };
+
   return (
-    <div className="w-full h-24 bg-green-800 mx-auto">
-      <img
-        className="absolute mt-2 ml-2 max-h-20"
-        src="https://sanatorioadventista.org.ar/assets/img/footer_logo_sap.png"
-      ></img>
+    <div className="w-full flex flex-col sm:flex-row justify-between items-center h-auto sm:h-16 bg-green-800 p-2">
+      <div className="flex items-center w-full sm:w-auto">
+        <img
+          className="max-h-12"
+          src="https://sanatorioadventista.org.ar/assets/img/footer_logo_sap.png"
+          alt="Logo"
+        />
+        <h2 className="text-white font-bold text-1/3xl px-4">¡Bienvenido {user.nombre}!</h2>
+      </div>
 
-      <div className="absolute mt-3 w-fit h-16 pl-36 flex">
-        <NavLink to={"/app/home"}>
-          <button className="bg-green-800 text-white font-bold py-2 px-12 rounded ml-3 h-full">
-            Home
-          </button>
+      <div className="w-full sm:w-auto mt-2 sm:mt-0 flex flex-col sm:flex-row items-center">
+        <NavLink 
+          to={"/app/home"} 
+          className={({ isActive }) =>
+            isActive 
+              ? "bg-green-700 text-white font-bold py-1 px-4 rounded ml-0 sm:ml-2 w-full sm:w-auto shadow-lg transform -translate-y-1"
+              : "bg-green-800 text-white font-bold py-1 px-4 rounded ml-0 sm:ml-2 w-full sm:w-auto hover:bg-green-700 hover:shadow-lg transition duration-300 transform hover:-translate-y-1"
+          }
+        >
+          Home
         </NavLink>
-        <NavLink to={"/app/socios"}>
-          <button className="bg-green-800 text-white font-bold py-2 px-12 rounded ml-3 h-full">
-            Gestionar Socios
-          </button>
-        </NavLink>
-        <NavLink to={"/app/adherentes"}>
-          <button className="bg-green-800  text-white font-bold py-2 px-12 rounded ml-3.5 h-full">
-            Gestionar Adherentes
-          </button>
-        </NavLink>
-        <NavLink to={"/app/cobros"}>
-          <button className="bg-green-800 text-white font-bold py-2 px-12 rounded ml-3.5 h-full">
-            Gestionar Cobros
-          </button>
-        </NavLink>
+        {user.rol !== 'user' && (
+          <>
+            <NavLink 
+              to={"/app/socios"} 
+              className={({ isActive }) =>
+                isActive 
+                  ? "bg-green-700 text-white font-bold py-1 px-4 rounded ml-0 sm:ml-2 w-full sm:w-auto shadow-lg transform -translate-y-1"
+                  : "bg-green-800 text-white font-bold py-1 px-4 rounded ml-0 sm:ml-2 w-full sm:w-auto hover:bg-green-700 hover:shadow-lg transition duration-300 transform hover:-translate-y-1"
+              }
+            >
+              Socios
+            </NavLink>
+            <NavLink 
+              to={"/app/adherentes"} 
+              className={({ isActive }) =>
+                isActive 
+                  ? "bg-green-700 text-white font-bold py-1 px-4 rounded ml-0 sm:ml-2 w-full sm:w-auto shadow-lg transform -translate-y-1"
+                  : "bg-green-800 text-white font-bold py-1 px-4 rounded ml-0 sm:ml-2 w-full sm:w-auto hover:bg-green-700 hover:shadow-lg transition duration-300 transform hover:-translate-y-1"
+              }
+            >
+              Adherentes
+            </NavLink>
+            <NavLink 
+              to={"/app/cobros"} 
+              className={({ isActive }) =>
+                isActive 
+                  ? "bg-green-700 text-white font-bold py-1 px-4 rounded ml-0 sm:ml-2 w-full sm:w-auto shadow-lg transform -translate-y-1"
+                  : "bg-green-800 text-white font-bold py-1 px-4 rounded ml-0 sm:ml-2 w-full sm:w-auto hover:bg-green-700 hover:shadow-lg transition duration-300 transform hover:-translate-y-1"
+              }
+            >
+              Cobros
+            </NavLink>
+          </>
+        )}
+        <button
+          onClick={handleLogout}
+          className="text-white font-bold ml-0 sm:ml-2 w-full sm:w-auto hover:shadow-lg transition duration-300 transform hover:-translate-y-1 mt-2 sm:mt-0"
+          style={{ background: 'transparent' }}
+        >
+          <LogOut />
+        </button>
       </div>
     </div>
   );

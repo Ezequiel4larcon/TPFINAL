@@ -1,153 +1,114 @@
-import React, { useState, useEffect } from "react";
-import "firebase/firestore";
+import React, { useState, useEffect, useCallback } from "react";
 import { db } from "../firebase/firebase";
 import { collection, getDocs, addDoc } from "firebase/firestore";
-import ModificarCobro from "../hooks/ModificarCobro";
+import ModificarCobroPopup from "../components/Planes/ModificarCobro";
+import AgregarCobroPopup from "../components/Planes/AgregarCobro";
 
-export default function Cobros() {
+export default function Cobros({ user }) {
   const [listCobros, setListCobros] = useState([]);
-  const [desc, setDesc] = useState("");
-  const [monto, setMonto] = useState("");
-  const [nombre, setNombre] = useState("");
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const getCobros = async () => {
-    let obj;
-    let lista = [];
-    const querySnapshot = await getDocs(collection(db, "planes"));
-    querySnapshot.forEach((doc) => {
-      obj = doc.data();
-      obj.id = doc.id;
-      lista.push(obj);
-    });
-    setListCobros(lista);
-  };
+  const getCobros = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const lista = [];
+      const querySnapshot = await getDocs(collection(db, "planes"));
+      querySnapshot.forEach((doc) => {
+        const obj = { ...doc.data(), id: doc.id };
+        lista.push(obj);
+      });
+      setListCobros(lista);
+    } catch (error) {
+      console.error("Error getting documents: ", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     getCobros();
-  }, []);
+  }, [getCobros]);
 
-  const addCobro = async () => {
-    const obj = { desc, monto, nombre };
-    const dbRef = await addDoc(collection(db, "planes"), {
-      desc: obj.desc,
-      monto: parseInt(obj.monto),
-      nombre: obj.nombre,
-    });
-    console.log(dbRef.id);
-    clearInput();
-    getCobros();
+  const addCobro = async (obj) => {
+    try {
+      await addDoc(collection(db, "planes"), obj);
+      getCobros(); 
+      setIsPopupOpen(false); 
+    } catch (error) {
+      console.error("Error adding document: ", error);
+    }
   };
-  const clearInput = () => {
-    setDesc("");
-    setMonto("");
-    setNombre("");
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
   };
+
+  const filteredCobros = listCobros.filter(cobro =>
+    cobro.nombre.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
-    <div className="bg-green-180 bg w-full">
-      <div className="mt-5 flex-col ">
-        <form className=" mr-10 float-left pl-10 mt-5">
-          <div className="pr-2 border-r-4 border-green-700 w-52 columns-1 ">
-            <input
-              className="mb-7 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-50 dark:border-gray-600 dark:placeholder-gray-400 dark:text-dark dark:focus:ring-blue-500 dark:focus:border-blue-500"
-              placeholder="Nombre"
-              required={true}
-              onChange={(e) => setNombre(e.target.value)}
-              value={nombre}
-            />
-            <input
-              className="mb-7 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-50 dark:border-gray-600 dark:placeholder-gray-400 dark:text-dark dark:focus:ring-blue-500 dark:focus:border-blue-500"
-              placeholder="Monto"
-              type={"number"}
-              required={true}
-              onChange={(e) => setMonto(e.target.value)}
-              value={monto}
-            />
-            <input
-              className="mb-7 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-50 dark:border-gray-600 dark:placeholder-gray-400 dark:text-dark dark:focus:ring-blue-500 dark:focus:border-blue-500"
-              placeholder="Descripcion"
-              required={true}
-              onChange={(e) => setDesc(e.target.value)}
-              value={desc}
-            />
-            <input
-              type="button"
-              value=" + Agregar Plan"
-              className="bg-green-800 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full ml-4 mt-2"
-              onClick={(e) => {
-                if (nombre !== "" && monto !== "" && desc !== "") {
-                  addCobro();
-                }else{
-                  alert("No se pueden dejar campos vacios");
-                }
-              }}
-            >
-            </input>
-          </div>
-        </form>
-        <div className="flex mr-10 mb-64 w-54 h-14">
-          <div className="flex">
-            <table className="mb-64 flex-col min-w-full text-center table-fixed">
-              <thead className="border-b">
-                <tr>
-                  <th
-                    scope="col"
-                    class="border max-w-xs border-slate-700 text-sm font-medium text-gray-900 px-6 py-4 bg-slate-400"
-                  >
-                    Nombre
-                  </th>
-                  <th
-                    scope="col"
-                    class="border max-w-xs border-slate-700 text-sm font-medium text-gray-900 px-6 py-4 bg-slate-400"
-                  >
-                    Monto
-                  </th>
-                  <th
-                    scope="col"
-                    class="border max-w-xs border-slate-700 text-sm font-medium text-gray-900 px-6 py-4 bg-slate-400"
-                  >
-                    Descripcion
-                  </th>
-                  <th
-                    scope="col"
-                    class="border max-w-xs border-slate-700 text-sm font-medium text-gray-900 px-6 py-4 bg-slate-400"
-                  >
-                    ID
-                  </th>
-                  <th
-                    scope="col"
-                    class="border max-w-xs border-slate-700 text-sm font-medium text-gray-900 px-6 py-4 bg-slate-400"
-                  >
-                    Modificar
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="w-full pt-500">
-                {listCobros.map((cobros, index) => (
-                  <tr className="border-b" key={index}>
-                    <td className=" border border-slate-700 text-sm text-gray-900 font-medium px-6 py-4 whitespace-nowrap bg-slate-300 hover:bg-slate-500">
-                      {cobros.nombre}
-                    </td>
-                    <td className=" border border-slate-700 text-sm text-gray-900 font-medium px-6 py-4 whitespace-nowrap bg-slate-300 hover:bg-slate-500">
-                      {cobros.monto}
-                    </td>
-                    <td className="border max-w-xs border-slate-700 text-sm text-gray-900 font-medium px-6 py-4 whitespace-nowrap bg-slate-300 hover:bg-slate-500">
-                      {cobros.desc}
-                    </td>
-                    <td className="border max-w-xs border-slate-700 text-sm text-gray-900 font-medium px-6 py-4 whitespace-nowrap bg-slate-300 hover:bg-slate-500">
-                      {cobros.id}
-                    </td>
-
-                    <td className="border max-w-xs border-slate-700 bg-slate-400">
-                      <ModificarCobro value={cobros.id}></ModificarCobro>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+    <div>
+    {user.rol === 'user' ? <h1>Acceso denegado </h1> : (
+    <div className="bg-green-100 w-full min-h-screen py-10 flex flex-col items-center">
+      <div className="w-full max-w-4xl flex justify-between items-center mb-6 px-4">
+        <input
+          type="text"
+          className="p-2 border border-green-800 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent w-1/2"
+          placeholder="Buscar por nombre"
+          value={searchTerm}
+          onChange={handleSearchChange}
+        />
+        <button
+          className="bg-green-800 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-full"
+          onClick={() => setIsPopupOpen(true)}
+        >
+          + Agregar Cobro
+        </button>
       </div>
+      {isLoading ? (
+        <p>Cargando...</p>
+      ) : (
+        <div className="w-full max-w-4xl overflow-x-auto">
+          <table className="w-full text-center table-auto border-collapse">
+            <thead className="bg-green-800 text-white">
+              <tr>
+                <th className="px-4 py-2 border border-green-900">Nombre</th>
+                <th className="px-4 py-2 border border-green-900">Monto</th>
+                <th className="px-4 py-2 border border-green-900">Descripción</th>
+                <th className="px-4 py-2 border border-green-900">Acciones</th>
+              </tr>
+            </thead>
+            <tbody className="bg-green-100">
+              {filteredCobros.map((cobro) => (
+                <tr className="bg-white hover:bg-green-200 transition-colors" key={cobro.id}>
+                  <td className="border border-green-900 px-4 py-2">{cobro.nombre}</td>
+                  <td className="border border-green-900 px-4 py-2">{cobro.monto}</td>
+                  <td className="border border-green-900 px-4 py-2">{cobro.desc}</td>
+                  <td className="border border-green-900 px-4 py-2">
+                    <ModificarCobroPopup
+                      cobroId={cobro.id}
+                      getCobros={getCobros}
+                      listCobros={listCobros}
+                      setListCobros={setListCobros}
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      {isPopupOpen && (
+        <AgregarCobroPopup
+          onAddCobro={addCobro}
+          onClose={() => setIsPopupOpen(false)}
+        />
+      )}
+    </div>
+    )}
     </div>
   );
 }
